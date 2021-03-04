@@ -3,6 +3,12 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+                add-apt-repository    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+                $(lsb_release -cs) \
+                stable"
+                apt-get update -y
+                apt install docker -y
                 echo 'Running build automation'
                 sh './gradlew build --no-daemon'
                 archiveArtifacts artifacts: 'dist/trainSchedule.zip'
@@ -23,7 +29,7 @@ pipeline {
         }
         stage('Push the Docker image') {
             when {
-                branch 'master' 
+                branch 'master'
             }
             steps {
                 script {
@@ -50,7 +56,7 @@ pipeline {
                     } catch (err) {
                         echo: 'caught error: $err'
                     }
-                        sh "sshpass -p '$USERPASS -v shh -o StrictHostKeyChecking=no $USERNAME@prod_ip \"docker run --restart always --name train-schedule -p 8080:8080 -d yahav/train:${env.BUILD_NUMBER}\""                   
+                        sh "sshpass -p '$USERPASS -v shh -o StrictHostKeyChecking=no $USERNAME@prod_ip \"docker run --restart always --name train-schedule -p 8080:8080 -d yahav/train:${env.BUILD_NUMBER}\""
                   }
                 }
             }
